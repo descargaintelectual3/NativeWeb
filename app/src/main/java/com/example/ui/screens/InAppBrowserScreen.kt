@@ -45,6 +45,7 @@ import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.KeyboardHide
 import androidx.compose.material.icons.filled.Lock
@@ -606,6 +607,18 @@ fun InAppBrowserScreen(
                                     modifier = Modifier.size(36.dp)
                                 ) {
                                     Icon(Icons.Default.Refresh, contentDescription = "Recargar", tint = LavenderPrimary, modifier = Modifier.size(20.dp))
+                                }
+                                IconButton(
+                                    onClick = { com.example.util.ChatCopyInjector.scrollToTop(webViewInstance) },
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Icon(Icons.Default.ExpandLess, contentDescription = "Subir al Inicio", tint = TextWhite, modifier = Modifier.size(20.dp))
+                                }
+                                IconButton(
+                                    onClick = { com.example.util.ChatCopyInjector.scrollToBottom(webViewInstance) },
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Icon(Icons.Default.ExpandMore, contentDescription = "Bajar al Final", tint = TextWhite, modifier = Modifier.size(20.dp))
                                 }
                             }
 

@@ -191,6 +191,9 @@ fun TurboWebView(
                             if (customJs.isNotBlank()) {
                                 view?.evaluateJavascript(customJs, null)
                             }
+
+                            // Inject Smart Chat Copy & Scroll Engine
+                            com.example.util.ChatCopyInjector.inject(view)
                         }
                     }
 

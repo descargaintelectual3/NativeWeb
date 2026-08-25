@@ -1,8 +1,8 @@
 {
   "name": "webnative-pro",
-  "version": "4.5.0",
-  "versionCode": 450,
+  "version": "4.5.1",
+  "versionCode": 451,
   "description": "WebNative Pro - Android Native App & Remote System Viewer",
-  "changelog": "🚀 WebNative Pro v4.5.0: Release con dock modular, inyector de copia en chat y ajustes de apariencia.",
+  "changelog": "🚀 WebNative Pro v4.5.1: Inyector de Copia de Mensajes Optimizado (ChatCopyInjector), Desplazamiento Rápido con 1 Toque y Dock Modular Mejorado.",
   "downloadUrl": "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-debug.apk"
 }
