@@ -1,0 +1,9 @@
+id,name,url,category,icon_type,icon_value,accent_color,fullscreen,hardware_boost,ad_block,battery_bypass,desktop_mode,oled_black_mode,cpu_priority,custom_css
+1,Bene Cloud,https://bene.civer.cloud/,Cloud & Empresa,EMOJI,🌟,#D0BCFF,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,TURBO,/* Bene Cloud Enterprise UI Tweaks */ header { backdrop-filter: blur(12px); }
+2,Manager Cloud,https://manager.civer.cloud/,Cloud & Empresa,EMOJI,📊,#A6EECA,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,TURBO,/* Manager Cloud Dashboard Styling */ .sidebar { font-family: sans-serif; }
+3,ControlDroid Cloud,https://controldroid.civer.cloud/,Cloud & Empresa,EMOJI,🤖,#FFD999,TRUE,TRUE,TRUE,TRUE,FALSE,TRUE,TURBO,/* Low-latency WebRTC Canvas */ canvas { image-rendering: pixelated; }
+4,Civer Cloud Portal,https://civer.pro/,Cloud & Empresa,EMOJI,⚡,#80D8FF,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,TURBO,/* Civer Pro SSO Hub */
+5,Civer IDE Web,https://civer.cloud/,Desarrollo,EMOJI,💻,#7D2AE8,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TURBO,/* Monaco Dark Editor Theme */
+6,GitHub Repositories,https://github.com/PabloArboledai,Desarrollo,EMOJI,🐙,#EADDFF,TRUE,TRUE,FALSE,TRUE,FALSE,FALSE,NORMAL,
+7,Telegram Web Bot Console,https://web.telegram.org/a/,Comunicación,EMOJI,✈️,#2AABEE,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,TURBO,
+8,YouTube Ultra Media,https://m.youtube.com,Entretenimiento,EMOJI,▶️,#FF0000,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,TURBO,

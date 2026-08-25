@@ -1,0 +1,99 @@
+name: Automated CI/CD Android APK Build & GitHub Release
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-release:
+    name: Build APKs and Publish GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant Execute Permission to gradlew
+        run: chmod +x gradlew || true
+
+      - name: Build Android APKs (Debug & Release)
+        run: |
+          if [ -f "./gradlew" ]; then
+            ./gradlew assembleDebug --no-daemon --stacktrace
+          else
+            gradle assembleDebug --no-daemon --stacktrace
+          fi
+
+      - name: Extract Version Info
+        id: get_version
+        run: |
+          VERSION="4.4.7"
+          if [ -f "version_manifest.json" ]; then
+            PARSED_VER=$(grep -o '"version": "[^"]*' version_manifest.json | cut -d'"' -f4)
+            if [ -n "$PARSED_VER" ]; then
+              VERSION="$PARSED_VER"
+            fi
+          fi
+          TAG_NAME="v$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Building release for version $TAG_NAME"
+
+      - name: Rename & Organize APK Artifacts
+        run: |
+          mkdir -p release-assets
+          find app/build/outputs/apk/ -name "*.apk" -type f -exec cp {} release-assets/ \;
+          ls -la release-assets/
+
+      - name: Upload APKs to GitHub Actions Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: webnative-pro-apks-${{ steps.get_version.outputs.TAG_NAME }}
+          path: release-assets/*.apk
+          retention-days: 30
+
+      - name: Publish or Update GitHub Release with APKs
+        uses: softprops/action-gh-release@v2
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: ${{ steps.get_version.outputs.TAG_NAME }}
+          name: WebNative Pro ${{ steps.get_version.outputs.TAG_NAME }}
+          body: |
+            ## 🚀 WebNative Pro ${{ steps.get_version.outputs.TAG_NAME }}
+            Compilado y publicado automáticamente por GitHub Actions CI/CD.
+
+            ### ✨ Novedades:
+            - **Centro de Actualizaciones 15-en-1:** Soporte multicanal in-app, SAF Local, URLs Directas, Sheets OTA y LAN Sync.
+            - **Verificación HTTP Real:** Sonda de conectividad con inspección de cabeceras, tipo MIME y tamaño de archivo.
+            - **Motor Turbo GPU:** Renderizado WebView optimizado y aceleración por hardware.
+            - **Google Sheets Cloud OTA:** Sincronización en caliente del catálogo sin reinstalar el APK.
+
+            ### 📦 Descarga directa:
+            Descarga el archivo `app-debug.apk` adjunto abajo e instálalo directamente en tu dispositivo Android.
+          files: release-assets/*.apk
+          draft: false
+          prerelease: false
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

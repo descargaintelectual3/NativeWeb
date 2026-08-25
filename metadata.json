@@ -1,0 +1,6 @@
+{
+  "name": "WebNative",
+  "description": "Transforma cualquier sitio web en una app nativa ultra-rápida con pantalla completa inmersiva, accesos directos al escritorio, logos personalizados y aceleración turbo de hardware.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

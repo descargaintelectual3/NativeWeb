@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Phone / App Window Frame -->
+    <path
+        android:pathData="M34,26 C34,23.8 35.8,22 38,22 L70,22 C72.2,22 74,23.8 74,26 L74,82 C74,84.2 72.2,86 70,86 L38,86 C35.8,86 34,84.2 34,82 Z"
+        android:strokeWidth="2.5"
+        android:strokeColor="#38BDF8"
+        android:fillColor="#151E34" />
+        
+    <!-- App Header Bar -->
+    <path
+        android:pathData="M34,26 C34,23.8 35.8,22 38,22 L70,22 C72.2,22 74,23.8 74,26 L74,34 L34,34 Z"
+        android:fillColor="#0284C7" />
+        
+    <!-- Dots on header -->
+    <path
+        android:pathData="M40,28 A1.5,1.5 0 1 1 40,27.9 M45,28 A1.5,1.5 0 1 1 45,27.9 M50,28 A1.5,1.5 0 1 1 50,27.9"
+        android:strokeWidth="1.5"
+        android:strokeColor="#FFFFFF" />
+
+    <!-- Web Globe Orbit -->
+    <path
+        android:pathData="M54,42 A16,16 0 1 0 54,74 A16,16 0 1 0 54,42 Z"
+        android:strokeWidth="1.5"
+        android:strokeColor="#818CF8"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M38,58 H70 M54,42 C49,47 49,69 54,74 C59,69 59,47 54,42 Z"
+        android:strokeWidth="1.2"
+        android:strokeColor="#818CF8" />
+
+    <!-- Ultra Speed Turbo Rocket / Lightning Overlay -->
+    <path
+        android:pathData="M56,36 L43,58 L52,58 L48,76 L65,52 L56,52 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="45"
+                android:endX="65"
+                android:endY="76"
+                android:startX="43"
+                android:startY="36"
+                android:type="linear">
+                <item android:color="#FACC15" android:offset="0.0" />
+                <item android:color="#F97316" android:offset="0.5" />
+                <item android:color="#EF4444" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:pathData="M56,36 L43,58 L52,58 L48,76 L65,52 L56,52 Z"
+        android:strokeWidth="1"
+        android:strokeColor="#FEF08A" />
+
+    <!-- Speed Sparks -->
+    <path
+        android:pathData="M68,44 L75,40 M69,66 L77,69 M30,48 L36,50 M29,66 L35,63"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeColor="#38BDF8" />
+</vector>

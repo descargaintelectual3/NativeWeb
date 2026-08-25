@@ -1,0 +1,9 @@
+{
+  "versionName": "v4.4.8",
+  "version": "4.4.8",
+  "versionCode": 448,
+  "changelog": "🚀 WebNative Pro v4.4.8: Centro de Actualizaciones 15-en-1, Verificación HTTP Real, Aceleración GPU Turbo, Sincronización OTA Google Sheets y arquitectura modular.",
+  "description": "Versión 4.4.8 con soporte multicanal de actualización (15 métodos), diagnóstico de red y motor Turbo.",
+  "releaseDate": "2026-08-25",
+  "downloadUrl": "https://github.com/PabloArboledai/Civer-Cloud-Manager-IDE/releases/latest/download/app-debug.apk"
+}

@@ -1,0 +1,7 @@
+{
+  "versionName": "v1.1.0",
+  "versionCode": 2,
+  "changelog": "Nueva actualización OTA Civer Cloud: Soporte de aceleración Vulkan, Sincronización en Vivo y Control Remoto.",
+  "releaseDate": "2026-08-25",
+  "downloadUrl": "https://github.com/PabloArboledai/Civer-Cloud-Manager-IDE/releases/download/v1.1.0/app-debug.apk"
+}
