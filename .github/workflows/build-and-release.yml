@@ -49,7 +49,7 @@ jobs:
       - name: Extract Version Info
         id: get_version
         run: |
-          VERSION="4.4.9"
+          VERSION="4.5.0"
           if [ -f "version_manifest.json" ]; then
             PARSED_VER=$(grep -o '"version": "[^"]*' version_manifest.json | cut -d'"' -f4)
             if [ -n "$PARSED_VER" ]; then

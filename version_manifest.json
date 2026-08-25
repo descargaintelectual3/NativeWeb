@@ -1,9 +1,9 @@
 {
-  "versionName": "v4.4.9",
-  "version": "4.4.9",
-  "versionCode": 449,
-  "changelog": "🚀 WebNative Pro v4.4.9: Centro de Actualizaciones 15-en-1, Verificación HTTP Real, Aceleración GPU Turbo, Sincronización OTA Google Sheets y compilación continua CI/CD en GitHub Actions.",
-  "description": "Versión 4.4.9 con compilación automática en GitHub Actions, soporte multicanal de actualización (15 métodos) y motor Turbo GPU.",
+  "versionName": "v4.5.0",
+  "version": "4.5.0",
+  "versionCode": 450,
+  "changelog": "🚀 WebNative Pro v4.5.0: Centro de Actualizaciones 15-en-1, Dock Modular, Inyector de Copia en Chat, Ajustes de Apariencia y Pipeline CI/CD GitHub Actions.",
+  "description": "Versión 4.5.0 con soporte multicanal de actualización (15 métodos), dock modular, inyector de copiado y motor Turbo.",
   "releaseDate": "2026-08-25",
   "downloadUrl": "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-debug.apk"
 }

@@ -14,8 +14,8 @@ android {
     applicationId = "com.aistudio.webnative.turbovx"
     minSdk = 24
     targetSdk = 35
-    versionCode = 449
-    versionName = "4.4.9"
+    versionCode = 450
+    versionName = "4.5.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
