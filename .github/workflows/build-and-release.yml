@@ -34,8 +34,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Grant Execute Permission to gradlew
-        run: chmod +x gradlew || true
+      - name: Grant Execute Permission to gradlew & Ensure Debug Keystore
+        run: |
+          chmod +x gradlew || true
+          if [ ! -f "debug.keystore" ]; then
+            echo "Generating fallback debug keystore..."
+            keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" || true
+          fi
 
       - name: Build Android APKs (Debug & Release)
         run: |
@@ -48,7 +53,7 @@ jobs:
       - name: Extract Version Info
         id: get_version
         run: |
-          VERSION="4.4.7"
+          VERSION="4.4.9"
           if [ -f "version_manifest.json" ]; then
             PARSED_VER=$(grep -o '"version": "[^"]*' version_manifest.json | cut -d'"' -f4)
             if [ -n "$PARSED_VER" ]; then
@@ -64,7 +69,12 @@ jobs:
         run: |
           mkdir -p release-assets
           find app/build/outputs/apk/ -name "*.apk" -type f -exec cp {} release-assets/ \;
-          ls -la release-assets/
+          # Asegurar copia estandarizada de app-debug.apk y versionada
+          cd release-assets
+          if [ -f "app-debug.apk" ]; then
+            cp app-debug.apk "WebNative-${{ steps.get_version.outputs.TAG_NAME }}.apk"
+          fi
+          ls -la
 
       - name: Upload APKs to GitHub Actions Artifacts
         uses: actions/upload-artifact@v4
@@ -90,7 +100,7 @@ jobs:
             - **Google Sheets Cloud OTA:** Sincronización en caliente del catálogo sin reinstalar el APK.
 
             ### 📦 Descarga directa:
-            Descarga el archivo `app-debug.apk` adjunto abajo e instálalo directamente en tu dispositivo Android.
+            Descarga el archivo `app-debug.apk` o `WebNative-${{ steps.get_version.outputs.TAG_NAME }}.apk` adjunto abajo e instálalo directamente en tu dispositivo Android.
           files: release-assets/*.apk
           draft: false
           prerelease: false

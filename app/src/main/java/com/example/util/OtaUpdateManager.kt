@@ -76,14 +76,14 @@ object OtaUpdateManager {
     private const val KEY_LAST_NOTIFIED_TIME = "ota_last_notified_time"
 
     // Presets & GitHub Repositories
-    const val GITHUB_REPO_WEB = "https://github.com/PabloArboledai/Civer-Cloud-Manager-IDE"
-    const val PRESET_GITHUB_RELEASES_WEB = "https://github.com/PabloArboledai/Civer-Cloud-Manager-IDE/releases"
-    const val PRESET_GITHUB_PACKAGE_JSON = "https://raw.githubusercontent.com/PabloArboledai/Civer-Cloud-Manager-IDE/main/package.json"
-    const val PRESET_GITHUB_VERSION_MANIFEST = "https://raw.githubusercontent.com/PabloArboledai/Civer-Cloud-Manager-IDE/main/version_manifest.json"
-    const val PRESET_GITHUB_RELEASES_API = "https://api.github.com/repos/PabloArboledai/Civer-Cloud-Manager-IDE/releases/latest"
-    const val PRESET_DEFAULT_DIRECT_APK = "https://github.com/PabloArboledai/Civer-Cloud-Manager-IDE/releases/latest/download/app-debug.apk"
-    const val PRESET_DEFAULT_RELEASE_APK = "https://github.com/PabloArboledai/Civer-Cloud-Manager-IDE/releases/latest/download/app-release.apk"
-    const val PRESET_RAW_MAIN_APK = "https://raw.githubusercontent.com/PabloArboledai/Civer-Cloud-Manager-IDE/main/app/build/outputs/apk/debug/app-debug.apk"
+    const val GITHUB_REPO_WEB = "https://github.com/descargaintelectual3/NativeWeb"
+    const val PRESET_GITHUB_RELEASES_WEB = "https://github.com/descargaintelectual3/NativeWeb/releases"
+    const val PRESET_GITHUB_PACKAGE_JSON = "https://raw.githubusercontent.com/descargaintelectual3/NativeWeb/main/package.json"
+    const val PRESET_GITHUB_VERSION_MANIFEST = "https://raw.githubusercontent.com/descargaintelectual3/NativeWeb/main/version_manifest.json"
+    const val PRESET_GITHUB_RELEASES_API = "https://api.github.com/repos/descargaintelectual3/NativeWeb/releases/latest"
+    const val PRESET_DEFAULT_DIRECT_APK = "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-debug.apk"
+    const val PRESET_DEFAULT_RELEASE_APK = "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-release.apk"
+    const val PRESET_RAW_MAIN_APK = "https://raw.githubusercontent.com/descargaintelectual3/NativeWeb/main/app/build/outputs/apk/debug/app-debug.apk"
 
     private val _updateState = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val updateState: StateFlow<UpdateStatus> = _updateState.asStateFlow()

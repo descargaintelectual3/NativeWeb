@@ -17,8 +17,8 @@ object GitHubApiAutomation {
     private const val KEY_GH_OWNER = "github_repo_owner"
     private const val KEY_GH_REPO = "github_repo_name"
 
-    const val DEFAULT_OWNER = "PabloArboledai"
-    const val DEFAULT_REPO = "Civer-Cloud-Manager-IDE"
+    const val DEFAULT_OWNER = "descargaintelectual3"
+    const val DEFAULT_REPO = "NativeWeb"
 
     fun saveGitHubToken(context: Context, token: String) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

@@ -31,7 +31,7 @@ object RemoteConfigEngine {
     private const val KEY_REMOTE_SOURCE_URL = "remote_source_endpoint"
 
     const val DEFAULT_SAMPLE_CATALOG_URL =
-        "https://raw.githubusercontent.com/PabloArboledai/Civer-Cloud-Manager-IDE/main/apps_catalog.json"
+        "https://raw.githubusercontent.com/descargaintelectual3/NativeWeb/main/apps_catalog.json"
 
     private val _syncState = MutableStateFlow<RemoteSyncState>(RemoteSyncState.Idle)
     val syncState: StateFlow<RemoteSyncState> = _syncState.asStateFlow()
