@@ -81,7 +81,7 @@ object OtaUpdateManager {
     const val PRESET_GITHUB_PACKAGE_JSON = "https://raw.githubusercontent.com/descargaintelectual3/NativeWeb/main/package.json"
     const val PRESET_GITHUB_VERSION_MANIFEST = "https://raw.githubusercontent.com/descargaintelectual3/NativeWeb/main/version_manifest.json"
     const val PRESET_GITHUB_RELEASES_API = "https://api.github.com/repos/descargaintelectual3/NativeWeb/releases/latest"
-    const val PRESET_DEFAULT_DIRECT_APK = "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-debug.apk"
+    const val PRESET_DEFAULT_DIRECT_APK = "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-release.apk"
     const val PRESET_DEFAULT_RELEASE_APK = "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-release.apk"
     const val PRESET_RAW_MAIN_APK = "https://raw.githubusercontent.com/descargaintelectual3/NativeWeb/main/app/build/outputs/apk/debug/app-debug.apk"
 
@@ -100,7 +100,7 @@ object OtaUpdateManager {
                 @Suppress("DEPRECATION")
                 context.packageManager.getPackageInfo(context.packageName, 0)
             }
-            val vName = pInfo.versionName ?: "5.0.0"
+            val vName = pInfo.versionName ?: "5.0.1"
             val vCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 pInfo.longVersionCode
             } else {
@@ -121,8 +121,8 @@ object OtaUpdateManager {
             )
         } catch (e: Exception) {
             AppVersionInfo(
-                versionName = "5.0.0",
-                versionCode = 500,
+                versionName = "5.0.1",
+                versionCode = 501,
                 packageName = context.packageName,
                 firstInstallTime = "Desconocida",
                 lastUpdateTime = "Desconocida",

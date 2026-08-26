@@ -160,9 +160,9 @@ object GitHubApiAutomation {
      */
     suspend fun createRelease(
         context: Context,
-        tagName: String = "v5.0.0",
-        releaseName: String = "WebNative Pro v5.0.0",
-        bodyContent: String = "Lanzamiento automático WebNative Pro v5.0.0 con soporte multicanal, motor Turbo y actualización OTA.",
+        tagName: String = "v5.0.1",
+        releaseName: String = "WebNative Pro v5.0.1",
+        bodyContent: String = "Lanzamiento automático WebNative Pro v5.0.1 con soporte multicanal, motor Turbo, migración de backup y actualización OTA.",
         targetCommitish: String = "main",
         draft: Boolean = false,
         prerelease: Boolean = false
@@ -237,7 +237,7 @@ object GitHubApiAutomation {
         context: Context,
         releaseId: Long,
         apkFile: File,
-        assetName: String = "app-debug.apk"
+        assetName: String = "app-release.apk"
     ): GitHubActionResult = withContext(Dispatchers.IO) {
         val token = getGitHubToken(context)
         val owner = getRepoOwner(context)

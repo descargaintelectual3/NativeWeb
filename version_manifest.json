@@ -1,9 +1,9 @@
 {
-  "versionName": "v5.0.0",
-  "version": "5.0.0",
-  "versionCode": 500,
-  "changelog": "WebNative Pro v5.0.0: nueva línea principal compatible con instalaciones 4.x, compilación reproducible, CI/CD automático y actualización OTA con notificaciones.",
-  "description": "Versión 5.0.0 con las 15 rutas de actualización, acceso GitHub de cero clics, actualización manual y comprobación automática en segundo plano.",
-  "releaseDate": "2026-08-25",
-  "downloadUrl": "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-debug.apk"
+  "versionName": "v5.0.1",
+  "version": "5.0.1",
+  "versionCode": 501,
+  "changelog": "WebNative Pro v5.0.1: nueva línea principal compatible con instalaciones 4.x, compilación reproducible, CI/CD automático y actualización OTA con notificaciones.",
+  "description": "Versión 5.0.1 con las 15 rutas de actualización, acceso GitHub de cero clics, actualización manual y comprobación automática en segundo plano.",
+  "releaseDate": "2026-08-26",
+  "downloadUrl": "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-release.apk"
 }

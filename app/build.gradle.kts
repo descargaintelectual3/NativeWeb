@@ -6,8 +6,8 @@ plugins {
   alias(libs.plugins.secrets)
 }
 
-val configuredVersionName = providers.gradleProperty("versionName").orElse("5.0.0").get()
-val configuredVersionCode = providers.gradleProperty("versionCode").map { it.toInt() }.orElse(500).get()
+val configuredVersionName = providers.gradleProperty("versionName").orElse("5.0.1").get()
+val configuredVersionCode = providers.gradleProperty("versionCode").map { it.toInt() }.orElse(501).get()
 
 android {
   namespace = "com.example"
@@ -54,10 +54,7 @@ android {
       if (relConfig.storeFile != null && relConfig.storeFile!!.exists()) {
         signingConfig = relConfig
       } else {
-        val dbgConfig = signingConfigs.getByName("debugConfig")
-        if (dbgConfig.storeFile != null && dbgConfig.storeFile!!.exists()) {
-          signingConfig = dbgConfig
-        }
+        logger.warn("Release signing key missing; assembleRelease will fail until KEYSTORE_PATH and signing credentials are provided.")
       }
     }
     debug {
