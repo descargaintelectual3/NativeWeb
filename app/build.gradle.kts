@@ -6,8 +6,8 @@ plugins {
   alias(libs.plugins.secrets)
 }
 
-val configuredVersionName = providers.gradleProperty("versionName").orElse("5.0.2").get()
-val configuredVersionCode = providers.gradleProperty("versionCode").map { it.toInt() }.orElse(502).get()
+val configuredVersionName = providers.gradleProperty("versionName").orElse("5.0.3").get()
+val configuredVersionCode = providers.gradleProperty("versionCode").map { it.toInt() }.orElse(503).get()
 
 android {
   namespace = "com.example"
@@ -102,7 +102,6 @@ dependencies {
   implementation(libs.androidx.lifecycle.viewmodel.compose)
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
-  implementation(libs.androidx.work.runtime.ktx)
   implementation(libs.coil.compose)
   implementation(libs.converter.moshi)
   implementation(libs.kotlinx.coroutines.android)

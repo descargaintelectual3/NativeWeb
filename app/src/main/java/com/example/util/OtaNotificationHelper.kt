@@ -14,7 +14,6 @@ object OtaNotificationHelper {
     private const val CHANNEL_ID = "civer_ota_updates_channel"
     private const val CHANNEL_NAME = "Actualizaciones Civer Cloud OTA"
     const val NOTIFICATION_ID = 9001
-    private const val READY_NOTIFICATION_ID = 9002
 
     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -34,50 +33,7 @@ object OtaNotificationHelper {
         try {
             val notificationManager = NotificationManagerCompat.from(context)
             notificationManager.cancel(NOTIFICATION_ID)
-            notificationManager.cancel(READY_NOTIFICATION_ID)
         } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    fun showReadyToInstallNotification(
-        context: Context,
-        versionName: String,
-        apkPath: String
-    ) {
-        if (!OtaUpdateManager.isPushNotificationsEnabled(context)) return
-
-        createNotificationChannel(context)
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra("EXTRA_OPEN_OTA_DIALOG", true)
-            putExtra("EXTRA_PENDING_APK_PATH", apkPath)
-        }
-        val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            READY_NOTIFICATION_ID,
-            intent,
-            pendingIntentFlags
-        )
-
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.stat_sys_download_done)
-            .setContentTitle("Actualización $versionName lista")
-            .setContentText("El APK se descargó. Toca para instalarlo.")
-            .setStyle(NotificationCompat.BigTextStyle().bigText("La actualización $versionName ya está descargada y lista para instalarse."))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-            .build()
-
-        try {
-            NotificationManagerCompat.from(context).notify(READY_NOTIFICATION_ID, notification)
-        } catch (e: SecurityException) {
             e.printStackTrace()
         }
     }

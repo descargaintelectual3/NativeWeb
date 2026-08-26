@@ -81,7 +81,7 @@ object OtaUpdateManager {
     const val PRESET_GITHUB_PACKAGE_JSON = "https://raw.githubusercontent.com/descargaintelectual3/NativeWeb/main/package.json"
     const val PRESET_GITHUB_VERSION_MANIFEST = "https://raw.githubusercontent.com/descargaintelectual3/NativeWeb/main/version_manifest.json"
     const val PRESET_GITHUB_RELEASES_API = "https://api.github.com/repos/descargaintelectual3/NativeWeb/releases/latest"
-    const val PRESET_DEFAULT_DIRECT_APK = "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-release.apk"
+    const val PRESET_DEFAULT_DIRECT_APK = "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-debug.apk"
     const val PRESET_DEFAULT_RELEASE_APK = "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-release.apk"
     const val PRESET_RAW_MAIN_APK = "https://raw.githubusercontent.com/descargaintelectual3/NativeWeb/main/app/build/outputs/apk/debug/app-debug.apk"
 
@@ -100,7 +100,7 @@ object OtaUpdateManager {
                 @Suppress("DEPRECATION")
                 context.packageManager.getPackageInfo(context.packageName, 0)
             }
-            val vName = pInfo.versionName ?: "5.0.1"
+            val vName = pInfo.versionName ?: "4.4.8"
             val vCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 pInfo.longVersionCode
             } else {
@@ -121,8 +121,8 @@ object OtaUpdateManager {
             )
         } catch (e: Exception) {
             AppVersionInfo(
-                versionName = "5.0.1",
-                versionCode = 501,
+                versionName = "4.4.8",
+                versionCode = 448,
                 packageName = context.packageName,
                 firstInstallTime = "Desconocida",
                 lastUpdateTime = "Desconocida",
@@ -182,12 +182,6 @@ object OtaUpdateManager {
     fun setAutoCheckEnabled(context: Context, enabled: Boolean) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putBoolean(KEY_AUTO_CHECK, enabled).apply()
-        if (enabled) {
-            OtaNotificationHelper.createNotificationChannel(context)
-            OtaUpdateWorker.schedule(context)
-        } else {
-            OtaUpdateWorker.cancel(context)
-        }
     }
 
     fun isPushNotificationsEnabled(context: Context): Boolean {
@@ -198,10 +192,7 @@ object OtaUpdateManager {
     fun setPushNotificationsEnabled(context: Context, enabled: Boolean) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putBoolean(KEY_PUSH_NOTIFICATIONS, enabled).apply()
-        if (enabled) {
-            OtaNotificationHelper.createNotificationChannel(context)
-            if (isAutoCheckEnabled(context)) OtaUpdateWorker.schedule(context)
-        } else {
+        if (!enabled) {
             OtaNotificationHelper.dismissNotification(context)
         }
     }
@@ -389,18 +380,7 @@ object OtaUpdateManager {
                 )
             }
 
-            val remoteVersionCodeFromManifest = json.optInt("versionCode", 0)
-            val formattedVersion = if (tagName.startsWith("v", ignoreCase = true)) tagName else "v$tagName"
-            val remoteVersionCode = if (remoteVersionCodeFromManifest > 0) {
-                remoteVersionCodeFromManifest
-            } else {
-                versionNameToCode(formattedVersion)
-            }
-            val installedVersion = getAppVersionInfo(context)
-            if (remoteVersionCode > 0 && remoteVersionCode <= installedVersion.versionCode) {
-                return UpdateStatus.UpToDate
-            }
-
+            val remoteVersionCode = json.optInt("versionCode", 0)
             val changelog = json.optString("body",
                 json.optString("changelog",
                     json.optString("description", "Actualización disponible en servidor.")
@@ -449,6 +429,8 @@ object OtaUpdateManager {
                 )
             }
 
+            val formattedVersion = if (tagName.startsWith("v", ignoreCase = true)) tagName else "v$tagName"
+
             return UpdateStatus.UpdateAvailable(
                 versionName = formattedVersion,
                 versionCode = remoteVersionCode,
@@ -465,14 +447,6 @@ object OtaUpdateManager {
                 suggestedDirectUrl = null
             )
         }
-    }
-
-    private fun versionNameToCode(version: String): Int {
-        val match = Regex("v?(\\d+)\\.(\\d+)(?:\\.(\\d+))?").find(version) ?: return 0
-        val major = match.groupValues[1].toIntOrNull() ?: return 0
-        val minor = match.groupValues[2].toIntOrNull() ?: 0
-        val patch = match.groupValues.getOrNull(3)?.toIntOrNull() ?: 0
-        return major * 100 + minor * 10 + patch
     }
 
     // =========================================================================
@@ -645,9 +619,6 @@ object OtaUpdateManager {
     fun promptInstallApk(context: Context, apkFile: File): Boolean {
         return try {
             if (!apkFile.exists() || apkFile.length() < 1000) return false
-            val cacheRoot = context.cacheDir.canonicalFile
-            val candidate = apkFile.canonicalFile
-            if (!candidate.path.startsWith(cacheRoot.path + File.separator)) return false
 
             // Check Unknown Sources Permission for Android 8+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

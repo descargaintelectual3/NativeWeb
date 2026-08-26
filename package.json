@@ -1,8 +1,8 @@
 {
   "name": "webnative-pro",
-  "version": "5.0.2",
-  "versionCode": 502,
+  "version": "5.0.3",
+  "versionCode": 503,
   "description": "WebNative Pro - Android Native App & Remote System Viewer",
-  "changelog": "WebNative Pro v5.0.2: nueva línea principal compatible con instalaciones 4.x, compilación reproducible, CI/CD automático y actualización OTA con notificaciones.",
+  "changelog": "WebNative Pro v5.0.3: nueva línea principal compatible con instalaciones 4.x, compilación reproducible, CI/CD automático y actualización OTA con notificaciones.",
   "downloadUrl": "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-release.apk"
 }
