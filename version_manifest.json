@@ -1,9 +1,9 @@
 {
-  "versionName": "v4.5.1",
-  "version": "4.5.1",
-  "versionCode": 451,
-  "changelog": "🚀 WebNative Pro v4.5.1: Inyector de Copia de Mensajes Optimizado (ChatCopyInjector), Desplazamiento Rápido con 1 Toque y Dock Modular Mejorado.",
-  "description": "Versión 4.5.1 con inyector inteligente de copia para ChatGPT, Claude, Gemini, Bené Portal y botones de scroll rápido en dock.",
+  "versionName": "v5.0.0",
+  "version": "5.0.0",
+  "versionCode": 500,
+  "changelog": "WebNative Pro v5.0.0: nueva línea principal compatible con instalaciones 4.x, compilación reproducible, CI/CD automático y actualización OTA con notificaciones.",
+  "description": "Versión 5.0.0 con las 15 rutas de actualización, acceso GitHub de cero clics, actualización manual y comprobación automática en segundo plano.",
   "releaseDate": "2026-08-25",
   "downloadUrl": "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-debug.apk"
 }

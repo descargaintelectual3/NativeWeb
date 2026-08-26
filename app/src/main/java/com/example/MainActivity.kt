@@ -50,6 +50,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,11 +84,14 @@ import com.example.ui.theme.TextGrayMuted
 import com.example.ui.theme.TextWhite
 import com.example.ui.viewmodel.MainNavTab
 import com.example.ui.viewmodel.WebAppViewModel
+import com.example.util.OtaUpdateManager
+import com.example.util.OtaUpdateWorker
+import java.io.File
 
 class MainActivity : ComponentActivity() {
 
     private val viewModel: WebAppViewModel by viewModels()
-    private var openOtaDialogOnLaunch = false
+    private var openOtaDialogOnLaunch by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -96,14 +100,14 @@ class MainActivity : ComponentActivity() {
         // Clear any sticky notification on launch if the user opened the app
         com.example.util.OtaNotificationHelper.dismissNotification(this)
 
-        // Check if opened from update notification
-        if (intent?.getBooleanExtra("EXTRA_OPEN_OTA_DIALOG", false) == true ||
-            intent?.hasExtra("EXTRA_AUTO_UPDATE_VERSION") == true) {
-            openOtaDialogOnLaunch = true
-        }
+        // Check if opened from update notification or a background download.
+        handleUpdateIntent(intent)
 
-        // Initialize Notification channel for OTA Updates
+        // Initialize Notification channel and persist the OTA worker when enabled.
         com.example.util.OtaNotificationHelper.createNotificationChannel(this)
+        if (OtaUpdateManager.isAutoCheckEnabled(this)) {
+            OtaUpdateWorker.schedule(this)
+        }
 
         setContent {
             MyApplicationTheme(darkTheme = true) {
@@ -118,7 +122,22 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        handleUpdateIntent(intent)
         com.example.util.OtaNotificationHelper.dismissNotification(this)
+    }
+
+    private fun handleUpdateIntent(updateIntent: android.content.Intent?) {
+        if (updateIntent?.getBooleanExtra("EXTRA_OPEN_OTA_DIALOG", false) == true ||
+            updateIntent?.hasExtra("EXTRA_AUTO_UPDATE_VERSION") == true) {
+            openOtaDialogOnLaunch = true
+        }
+
+        updateIntent?.getStringExtra("EXTRA_PENDING_APK_PATH")?.let { path ->
+            val apkFile = File(path)
+            if (apkFile.exists()) {
+                OtaUpdateManager.promptInstallApk(this, apkFile)
+            }
+        }
     }
 
     override fun onResume() {
@@ -136,8 +155,8 @@ fun MainScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    var showOtaUpdateDialog by androidx.compose.runtime.remember {
-        androidx.compose.runtime.mutableStateOf(initialShowOtaDialog)
+    var showOtaUpdateDialog by androidx.compose.runtime.remember(initialShowOtaDialog) {
+        mutableStateOf(initialShowOtaDialog)
     }
 
     // Dismiss any pending notification when main screen is rendered

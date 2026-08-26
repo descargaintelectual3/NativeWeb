@@ -1,10 +1,12 @@
 package com.example.ui.dialogs
 
+import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -197,6 +199,13 @@ fun RemoteControlOtaDialog(
     var autoCheckUpdates by remember { mutableStateOf(OtaUpdateManager.isAutoCheckEnabled(context)) }
     var pushNotifications by remember { mutableStateOf(OtaUpdateManager.isPushNotificationsEnabled(context)) }
     var autoSyncCatalog by remember { mutableStateOf(RemoteConfigEngine.isAutoSyncEnabled(context)) }
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        pushNotifications = granted || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+        OtaUpdateManager.setPushNotificationsEnabled(context, pushNotifications)
+    }
 
     // Method 2 File Picker Launcher
     val apkFilePickerLauncher = rememberLauncherForActivityResult(
@@ -630,9 +639,13 @@ fun RemoteControlOtaDialog(
                             OtaUpdateManager.setAutoCheckEnabled(context, it)
                         },
                         pushNotifications = pushNotifications,
-                        onPushNotificationsChange = {
-                            pushNotifications = it
-                            OtaUpdateManager.setPushNotificationsEnabled(context, it)
+                        onPushNotificationsChange = { enabled ->
+                            if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            } else {
+                                pushNotifications = enabled
+                                OtaUpdateManager.setPushNotificationsEnabled(context, enabled)
+                            }
                         },
                         autoSyncCatalog = autoSyncCatalog,
                         onAutoSyncCatalogChange = {

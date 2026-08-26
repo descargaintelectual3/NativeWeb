@@ -160,9 +160,9 @@ object GitHubApiAutomation {
      */
     suspend fun createRelease(
         context: Context,
-        tagName: String = "v4.4.8",
-        releaseName: String = "WebNative Pro v4.4.8",
-        bodyContent: String = "Lanzamiento automático WebNative Pro v4.4.8 con soporte multicanal y motor Turbo.",
+        tagName: String = "v5.0.0",
+        releaseName: String = "WebNative Pro v5.0.0",
+        bodyContent: String = "Lanzamiento automático WebNative Pro v5.0.0 con soporte multicanal, motor Turbo y actualización OTA.",
         targetCommitish: String = "main",
         draft: Boolean = false,
         prerelease: Boolean = false

@@ -6,6 +6,9 @@ plugins {
   alias(libs.plugins.secrets)
 }
 
+val configuredVersionName = providers.gradleProperty("versionName").orElse("5.0.0").get()
+val configuredVersionCode = providers.gradleProperty("versionCode").map { it.toInt() }.orElse(500).get()
+
 android {
   namespace = "com.example"
   compileSdk = 35
@@ -14,8 +17,8 @@ android {
     applicationId = "com.aistudio.webnative.turbovx"
     minSdk = 24
     targetSdk = 35
-    versionCode = 451
-    versionName = "4.5.1"
+    versionCode = configuredVersionCode
+    versionName = configuredVersionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -79,6 +82,7 @@ android {
   }
 }
 
+
 // Configure the Secrets Gradle Plugin to use .env and .env.example files
 secrets {
   propertiesFileName = ".env"
@@ -101,6 +105,7 @@ dependencies {
   implementation(libs.androidx.lifecycle.viewmodel.compose)
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
+  implementation(libs.androidx.work.runtime.ktx)
   implementation(libs.coil.compose)
   implementation(libs.converter.moshi)
   implementation(libs.kotlinx.coroutines.android)
