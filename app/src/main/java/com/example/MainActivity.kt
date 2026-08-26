@@ -85,7 +85,6 @@ import com.example.ui.theme.TextWhite
 import com.example.ui.viewmodel.MainNavTab
 import com.example.ui.viewmodel.WebAppViewModel
 import com.example.util.OtaUpdateManager
-import com.example.util.OtaUpdateWorker
 import java.io.File
 
 class MainActivity : ComponentActivity() {
@@ -94,19 +93,14 @@ class MainActivity : ComponentActivity() {
     private var openOtaDialogOnLaunch by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
-        // Clear any sticky notification on launch if the user opened the app
-        com.example.util.OtaNotificationHelper.dismissNotification(this)
-
-        // Check if opened from update notification or a background download.
-        handleUpdateIntent(intent)
-
-        // Initialize Notification channel and persist the OTA worker when enabled.
-        com.example.util.OtaNotificationHelper.createNotificationChannel(this)
-        if (OtaUpdateManager.isAutoCheckEnabled(this)) {
-            OtaUpdateWorker.schedule(this)
+        // OTA is optional: a notification/provider failure must never block the main UI.
+        runCatching { com.example.util.OtaNotificationHelper.dismissNotification(this) }
+        runCatching { handleUpdateIntent(intent) }
+        runCatching {
+            com.example.util.OtaNotificationHelper.createNotificationChannel(this)
         }
 
         setContent {
@@ -122,8 +116,8 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleUpdateIntent(intent)
-        com.example.util.OtaNotificationHelper.dismissNotification(this)
+        runCatching { handleUpdateIntent(intent) }
+        runCatching { com.example.util.OtaNotificationHelper.dismissNotification(this) }
     }
 
     private fun handleUpdateIntent(updateIntent: android.content.Intent?) {
@@ -135,15 +129,15 @@ class MainActivity : ComponentActivity() {
         updateIntent?.getStringExtra("EXTRA_PENDING_APK_PATH")?.let { path ->
             val apkFile = File(path)
             if (apkFile.exists()) {
-                OtaUpdateManager.promptInstallApk(this, apkFile)
+                runCatching { OtaUpdateManager.promptInstallApk(this, apkFile) }
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.refreshBatteryOptimizationStatus(this)
-        com.example.util.OtaNotificationHelper.dismissNotification(this)
+        runCatching { viewModel.refreshBatteryOptimizationStatus(this) }
+        runCatching { com.example.util.OtaNotificationHelper.dismissNotification(this) }
     }
 }
 
@@ -161,15 +155,16 @@ fun MainScreen(
 
     // Dismiss any pending notification when main screen is rendered
     LaunchedEffect(Unit) {
-        com.example.util.OtaNotificationHelper.dismissNotification(context)
-
-        // Start poller only if auto check is actively enabled
-        if (com.example.util.OtaUpdateManager.isAutoCheckEnabled(context)) {
-            com.example.util.OtaUpdateManager.startContinuousUpdatePoller(context, this)
+        runCatching { com.example.util.OtaNotificationHelper.dismissNotification(context) }
+        runCatching {
+            if (com.example.util.OtaUpdateManager.isAutoCheckEnabled(context)) {
+                com.example.util.OtaUpdateManager.startContinuousUpdatePoller(context, this)
+            }
         }
-
-        if (com.example.util.RemoteConfigEngine.isAutoSyncEnabled(context)) {
-            com.example.util.RemoteConfigEngine.performRemoteSync(context, this)
+        runCatching {
+            if (com.example.util.RemoteConfigEngine.isAutoSyncEnabled(context)) {
+                com.example.util.RemoteConfigEngine.performRemoteSync(context, this)
+            }
         }
     }
 

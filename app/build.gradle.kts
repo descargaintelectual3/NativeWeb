@@ -6,8 +6,8 @@ plugins {
   alias(libs.plugins.secrets)
 }
 
-val configuredVersionName = providers.gradleProperty("versionName").orElse("5.0.1").get()
-val configuredVersionCode = providers.gradleProperty("versionCode").map { it.toInt() }.orElse(501).get()
+val configuredVersionName = providers.gradleProperty("versionName").orElse("5.0.2").get()
+val configuredVersionCode = providers.gradleProperty("versionCode").map { it.toInt() }.orElse(502).get()
 
 android {
   namespace = "com.example"
