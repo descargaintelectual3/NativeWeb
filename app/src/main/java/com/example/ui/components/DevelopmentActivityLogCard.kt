@@ -37,7 +37,14 @@ fun DevelopmentActivityLogCard(
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
 
-    var activities by remember { mutableStateOf(DevelopmentActivityLogManager.getActivities(context)) }
+    val activities by produceState(
+        initialValue = DevelopmentActivityLogManager.getActivities(context),
+        context
+    ) {
+        DevelopmentActivityLogManager.observeActivities(context).collect { list ->
+            value = if (list.isNotEmpty()) list else DevelopmentActivityLogManager.getActivities(context)
+        }
+    }
     var selectedCategory by remember { mutableStateOf(ActivityCategory.ALL) }
     var expandedEntryId by remember { mutableStateOf<String?>(null) }
     var showReportCopiedNotice by remember { mutableStateOf(false) }

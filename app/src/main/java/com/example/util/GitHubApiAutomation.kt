@@ -498,4 +498,119 @@ object GitHubApiAutomation {
             GitHubActionResult(false, -1, "Error al subir asset APK: ${e.localizedMessage}")
         }
     }
+
+    /**
+     * Fetches jobs and steps for a specific workflow run.
+     */
+    suspend fun getWorkflowRunJobs(context: Context, runId: Long): List<com.example.data.model.WorkflowJobInfo> = withContext(Dispatchers.IO) {
+        val token = getGitHubToken(context)
+        val owner = getRepoOwner(context)
+        val repo = getRepoName(context)
+        if (token.isBlank() || runId <= 0) return@withContext emptyList()
+
+        try {
+            val endpoint = "https://api.github.com/repos/$owner/$repo/actions/runs/$runId/jobs"
+            val url = URL(endpoint)
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.setRequestProperty("Authorization", "Bearer $token")
+            conn.setRequestProperty("Accept", "application/vnd.github+json")
+            conn.setRequestProperty("User-Agent", "WebNativePro-Android-Client")
+
+            val code = conn.responseCode
+            val responseText = (if (code in 200..299) conn.inputStream else conn.errorStream)
+                ?.bufferedReader()?.use { it.readText() } ?: ""
+
+            if (code in 200..299) {
+                val json = JSONObject(responseText)
+                val jobsArray = json.optJSONArray("jobs") ?: return@withContext emptyList()
+                val list = mutableListOf<com.example.data.model.WorkflowJobInfo>()
+
+                for (i in 0 until jobsArray.length()) {
+                    val j = jobsArray.getJSONObject(i)
+                    val stepsArray = j.optJSONArray("steps")
+                    val stepsList = mutableListOf<com.example.data.model.JobStepInfo>()
+                    if (stepsArray != null) {
+                        for (k in 0 until stepsArray.length()) {
+                            val st = stepsArray.getJSONObject(k)
+                            stepsList.add(
+                                com.example.data.model.JobStepInfo(
+                                    name = st.optString("name", "Step"),
+                                    status = st.optString("status", "queued"),
+                                    conclusion = st.optString("conclusion", "pending"),
+                                    number = st.optInt("number", k + 1)
+                                )
+                            )
+                        }
+                    }
+
+                    list.add(
+                        com.example.data.model.WorkflowJobInfo(
+                            id = j.optLong("id"),
+                            runId = runId,
+                            name = j.optString("name", "Job"),
+                            status = j.optString("status", "queued"),
+                            conclusion = j.optString("conclusion", "pending"),
+                            steps = stepsList,
+                            htmlUrl = j.optString("html_url", ""),
+                            startedAt = j.optString("started_at", ""),
+                            completedAt = j.optString("completed_at", "")
+                        )
+                    )
+                }
+                list
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    /**
+     * Fetches raw logs for a specific job.
+     */
+    suspend fun getJobLogsText(context: Context, jobId: Long): String = withContext(Dispatchers.IO) {
+        val token = getGitHubToken(context)
+        val owner = getRepoOwner(context)
+        val repo = getRepoName(context)
+        if (token.isBlank() || jobId <= 0) return@withContext "Token no configurado o ID de Job inválido."
+
+        try {
+            val endpoint = "https://api.github.com/repos/$owner/$repo/actions/jobs/$jobId/logs"
+            var currentUrl = URL(endpoint)
+            var redirects = 0
+            var conn: HttpURLConnection
+
+            while (redirects < 4) {
+                conn = currentUrl.openConnection() as HttpURLConnection
+                conn.instanceFollowRedirects = false
+                conn.requestMethod = "GET"
+                conn.setRequestProperty("Authorization", "Bearer $token")
+                conn.setRequestProperty("Accept", "application/vnd.github+json")
+                conn.setRequestProperty("User-Agent", "WebNativePro-Android-Client")
+
+                val code = conn.responseCode
+                if (code in 300..399) {
+                    val location = conn.getHeaderField("Location")
+                    if (location != null) {
+                        currentUrl = URL(location)
+                        redirects++
+                        continue
+                    }
+                }
+
+                return@withContext if (code in 200..299) {
+                    conn.inputStream.bufferedReader().use { it.readText() }
+                } else {
+                    val err = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: ""
+                    "No se pudieron descargar los logs del job (HTTP $code): $err"
+                }
+            }
+            "Demasiadas redirecciones al descargar logs."
+        } catch (e: Exception) {
+            "Error al obtener logs: ${e.localizedMessage}"
+        }
+    }
 }

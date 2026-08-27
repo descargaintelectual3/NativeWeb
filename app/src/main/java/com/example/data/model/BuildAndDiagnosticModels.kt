@@ -25,6 +25,25 @@ data class BuildArtifactInfo(
     val source: String // "GitHub Artifact" or "GitHub Release Asset"
 )
 
+data class JobStepInfo(
+    val name: String,
+    val status: String,
+    val conclusion: String,
+    val number: Int
+)
+
+data class WorkflowJobInfo(
+    val id: Long,
+    val runId: Long,
+    val name: String,
+    val status: String,
+    val conclusion: String,
+    val steps: List<JobStepInfo>,
+    val htmlUrl: String,
+    val startedAt: String = "",
+    val completedAt: String = ""
+)
+
 enum class ActivityCategory {
     ALL,
     CICD,

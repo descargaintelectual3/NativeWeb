@@ -1,7 +1,13 @@
 package com.example.util
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import com.example.R
+import com.example.data.local.AppDatabase
+import com.example.data.model.ActivityCategory
+import com.example.data.model.DevelopmentActivityEntity
 import com.example.data.model.TestCaseResult
 import com.example.data.model.TestSuiteSummary
 import kotlinx.coroutines.Dispatchers
@@ -11,7 +17,7 @@ import kotlinx.coroutines.withContext
 object TestRunner {
 
     /**
-     * Executes the comprehensive test suite and returns health check results.
+     * Executes the comprehensive test suite, reports status via Toast & Room DB, and returns results.
      */
     suspend fun executeHealthCheckSuite(context: Context): TestSuiteSummary = withContext(Dispatchers.IO) {
         val startTime = System.currentTimeMillis()
@@ -21,31 +27,65 @@ object TestRunner {
 
         // 1. Test JUnit & Robolectric Resource Binding
         results.add(testResourceResolution(context))
-        delay(60)
+        delay(40)
 
         // 2. Test Roborazzi Screenshot Engine Configuration
         results.add(testRoborazziSuite())
-        delay(60)
+        delay(40)
 
-        // 3. Test Compose UI & Theme Design System
+        // 3. Test Room Database SQLite CRUD Sanity
+        results.add(testRoomDatabaseCrud(context))
+        delay(40)
+
+        // 4. Test Compose UI & Theme Design System
         results.add(testComposeThemeIntegrity())
-        delay(60)
+        delay(40)
 
-        // 4. Test FileProvider & OTA Package Installation Setup
+        // 5. Test FileProvider & OTA Package Installation Setup
         results.add(testFileProviderSetup(context))
-        delay(60)
+        delay(40)
 
-        // 5. Test GitHub CI/CD Automation Handshake & Token Format
+        // 6. Test GitHub CI/CD Automation Handshake & Token Format
         results.add(testGitHubApiConfiguration(context))
-        delay(60)
+        delay(40)
 
-        // 6. Test ADB & SystemProperties Reflection Bridge
+        // 7. Test ADB & SystemProperties Reflection Bridge
         results.add(testAdbSystemPropertiesBridge())
-        delay(60)
+        delay(40)
 
         val totalDuration = System.currentTimeMillis() - startTime
         val passed = results.count { it.passed }
         val failed = results.count { !it.passed }
+
+        val summary = TestSuiteSummary(
+            totalTests = results.size,
+            passedTests = passed,
+            failedTests = failed,
+            durationMs = totalDuration,
+            results = results
+        )
+
+        // Log result to Room DB
+        val statusLabel = if (failed == 0) "PASSED ($passed/$passed)" else "WARNING ($failed Fallos)"
+        DevelopmentActivityLogManager.logActivity(
+            context = context,
+            title = "Ejecución de Suite de Pruebas: $statusLabel",
+            description = "Health check ejecutó ${results.size} pruebas en ${totalDuration}ms. $passed pasaron, $failed fallaron.",
+            category = ActivityCategory.TESTING,
+            agentTag = "TestRunner",
+            affectedFiles = listOf("TestRunner.kt", "ExampleRobolectricTest.kt"),
+            rollbackInstruction = "Revisar logs en el panel de Diagnósticos y verificar compatibilidad de recursos."
+        )
+
+        // Show Toast on Main UI Thread
+        Handler(Looper.getMainLooper()).post {
+            val toastMsg = if (failed == 0) {
+                "✅ Health Check Exitoso: $passed/${results.size} pruebas pasadas (${totalDuration}ms)"
+            } else {
+                "⚠️ Health Check: $failed pruebas fallaron de ${results.size}"
+            }
+            Toast.makeText(context.applicationContext, toastMsg, Toast.LENGTH_SHORT).show()
+        }
 
         AppLogger.log(
             context,
@@ -53,13 +93,7 @@ object TestRunner {
             tag = "TEST_RUNNER"
         )
 
-        TestSuiteSummary(
-            totalTests = results.size,
-            passedTests = passed,
-            failedTests = failed,
-            durationMs = totalDuration,
-            results = results
-        )
+        summary
     }
 
     private fun testResourceResolution(context: Context): TestCaseResult {
@@ -108,6 +142,46 @@ object TestRunner {
                 message = "Configuración Roborazzi lista para ejecución CI/CD local",
                 durationMs = System.currentTimeMillis() - t0,
                 details = "Roborazzi plugin y dependencias configuradas en app/build.gradle.kts"
+            )
+        }
+    }
+
+    private suspend fun testRoomDatabaseCrud(context: Context): TestCaseResult = withContext(Dispatchers.IO) {
+        val t0 = System.currentTimeMillis()
+        try {
+            val dao = AppDatabase.getDatabase(context).developmentActivityDao()
+            val probe = DevelopmentActivityEntity(
+                activityId = "test-probe-${System.currentTimeMillis()}",
+                timestamp = System.currentTimeMillis(),
+                dateString = "TEST",
+                title = "Probe Test SQLite",
+                description = "Verificación de persistencia Room",
+                category = "TESTING",
+                agentTag = "TestRunner",
+                affectedFiles = "none",
+                rollbackInstruction = "none"
+            )
+            val insertedId = dao.insert(probe)
+            val fetched = dao.getActivityById(insertedId)
+            val isOk = fetched != null && fetched.title == "Probe Test SQLite"
+            dao.deleteById(insertedId)
+
+            TestCaseResult(
+                name = "Room DB: Persistencia SQLite & Integridad DAO",
+                suite = "Room Database Engine",
+                passed = isOk,
+                message = if (isOk) "Operaciones CRUD en SQLite SQLiteDatabase exitosas (ID #$insertedId)" else "Fallo al validar lectura en Room",
+                durationMs = System.currentTimeMillis() - t0,
+                details = "Comprueba que la base de datos 'webnative_database' y sus tablas DAO respondan a inserciones y consultas."
+            )
+        } catch (e: Exception) {
+            TestCaseResult(
+                name = "Room DB: Persistencia SQLite",
+                suite = "Room Database Engine",
+                passed = false,
+                message = "Error en base de datos: ${e.message}",
+                durationMs = System.currentTimeMillis() - t0,
+                details = e.stackTraceToString()
             )
         }
     }
@@ -173,7 +247,6 @@ object TestRunner {
             val repo = GitHubApiAutomation.getRepoName(context)
 
             val isConfigured = token.isNotBlank() && owner.isNotBlank() && repo.isNotBlank()
-            val tokenValidFormat = token.startsWith("ghp_") || token.startsWith("github_pat_") || token.length > 20
 
             TestCaseResult(
                 name = "CI/CD: Conector GitHub Actions & Token PAT",
