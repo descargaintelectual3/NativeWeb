@@ -1,13 +1,11 @@
 plugins {
   alias(libs.plugins.android.application)
+  alias(libs.plugins.kotlin.android)
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
   alias(libs.plugins.secrets)
 }
-
-val configuredVersionName = providers.gradleProperty("versionName").orElse("5.0.3").get()
-val configuredVersionCode = providers.gradleProperty("versionCode").map { it.toInt() }.orElse(503).get()
 
 android {
   namespace = "com.example"
@@ -17,8 +15,8 @@ android {
     applicationId = "com.aistudio.webnative.turbovx"
     minSdk = 24
     targetSdk = 35
-    versionCode = configuredVersionCode
-    versionName = configuredVersionName
+    versionCode = 451
+    versionName = "4.5.1"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -54,7 +52,10 @@ android {
       if (relConfig.storeFile != null && relConfig.storeFile!!.exists()) {
         signingConfig = relConfig
       } else {
-        logger.warn("Release signing key missing; assembleRelease will fail until KEYSTORE_PATH and signing credentials are provided.")
+        val dbgConfig = signingConfigs.getByName("debugConfig")
+        if (dbgConfig.storeFile != null && dbgConfig.storeFile!!.exists()) {
+          signingConfig = dbgConfig
+        }
       }
     }
     debug {
@@ -68,6 +69,9 @@ android {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
   }
+  kotlinOptions {
+    jvmTarget = "11"
+  }
   buildFeatures {
     compose = true
     buildConfig = true
@@ -78,7 +82,6 @@ android {
     includeInBundle = true
   }
 }
-
 
 // Configure the Secrets Gradle Plugin to use .env and .env.example files
 secrets {

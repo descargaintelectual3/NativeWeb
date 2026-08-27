@@ -1,12 +1,10 @@
 package com.example.ui.dialogs
 
-import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -61,7 +59,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.RocketLaunch
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.TableChart
@@ -194,56 +191,12 @@ fun RemoteControlOtaDialog(
     var base64Input by remember { mutableStateOf("") }
     var backupJsonString by remember { mutableStateOf("") }
 
-    val backupExportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json")
-    ) { uri: Uri? ->
-        if (uri != null) {
-            scope.launch {
-                try {
-                    val json = MultiUpdateEngines.exportFullBackupJson(context, this)
-                    context.contentResolver.openOutputStream(uri)?.use { output ->
-                        output.write(json.toByteArray(Charsets.UTF_8))
-                    } ?: error("No se pudo abrir el archivo de destino")
-                    backupJsonString = json
-                    Toast.makeText(context, "Backup completo guardado en el archivo seleccionado.", Toast.LENGTH_LONG).show()
-                } catch (error: Exception) {
-                    Toast.makeText(context, "Error al guardar backup: ${error.localizedMessage}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
-
-    val backupImportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            scope.launch {
-                try {
-                    val json = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
-                        ?: error("No se pudo leer el archivo seleccionado")
-                    backupJsonString = json
-                    val count = MultiUpdateEngines.importFullBackupJson(context, json, this).getOrThrow()
-                    Toast.makeText(context, "Migración completada: $count aplicaciones restauradas.", Toast.LENGTH_LONG).show()
-                } catch (error: Exception) {
-                    Toast.makeText(context, "Error al importar backup: ${error.localizedMessage}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
-
     var globalCssInput by remember { mutableStateOf(RemoteConfigEngine.getGlobalCustomCss(context)) }
     var globalJsInput by remember { mutableStateOf(RemoteConfigEngine.getGlobalCustomJs(context)) }
 
     var autoCheckUpdates by remember { mutableStateOf(OtaUpdateManager.isAutoCheckEnabled(context)) }
     var pushNotifications by remember { mutableStateOf(OtaUpdateManager.isPushNotificationsEnabled(context)) }
     var autoSyncCatalog by remember { mutableStateOf(RemoteConfigEngine.isAutoSyncEnabled(context)) }
-
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        pushNotifications = granted || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
-        OtaUpdateManager.setPushNotificationsEnabled(context, pushNotifications)
-    }
 
     // Method 2 File Picker Launcher
     val apkFilePickerLauncher = rememberLauncherForActivityResult(
@@ -677,13 +630,9 @@ fun RemoteControlOtaDialog(
                             OtaUpdateManager.setAutoCheckEnabled(context, it)
                         },
                         pushNotifications = pushNotifications,
-                        onPushNotificationsChange = { enabled ->
-                            if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            } else {
-                                pushNotifications = enabled
-                                OtaUpdateManager.setPushNotificationsEnabled(context, enabled)
-                            }
+                        onPushNotificationsChange = {
+                            pushNotifications = it
+                            OtaUpdateManager.setPushNotificationsEnabled(context, it)
                         },
                         autoSyncCatalog = autoSyncCatalog,
                         onAutoSyncCatalogChange = {
@@ -704,21 +653,19 @@ fun RemoteControlOtaDialog(
                                 Toast.makeText(context, "Copia de seguridad exportada y copiada al portapapeles.", Toast.LENGTH_SHORT).show()
                             }
                         },
-                        onExportBackupFile = { backupExportLauncher.launch("WebNative_Backup_${System.currentTimeMillis()}.json") },
                         onImportBackup = { json ->
                             scope.launch {
                                 val result = MultiUpdateEngines.importFullBackupJson(context, json, this)
                                 result.fold(
                                     onSuccess = { count ->
-                                        Toast.makeText(context, "Se restauraron $count aplicaciones, configuraciones y accesos.", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, "Se restauraron $count aplicaciones y configuraciones.", Toast.LENGTH_LONG).show()
                                     },
                                     onFailure = { err ->
                                         Toast.makeText(context, "Error: ${err.localizedMessage}", Toast.LENGTH_LONG).show()
                                     }
                                 )
                             }
-                        },
-                        onImportBackupFile = { backupImportLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) }
+                        }
                     )
                 }
 
@@ -1517,9 +1464,7 @@ private fun Method15BackupRestoreMigration(
     backupJson: String,
     onBackupJsonChange: (String) -> Unit,
     onExportBackup: () -> Unit,
-    onExportBackupFile: () -> Unit,
-    onImportBackup: (String) -> Unit,
-    onImportBackupFile: () -> Unit
+    onImportBackup: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text("Método 15: Backup, Restauración & Migración Total", fontWeight = FontWeight.Bold, color = LavenderPrimary, fontSize = 14.sp)
@@ -1540,16 +1485,6 @@ private fun Method15BackupRestoreMigration(
                 Text("Exportar JSON", color = DeepPurpleOnPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
 
-            OutlinedButton(
-                onClick = onExportBackupFile,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Guardar archivo", fontSize = 11.sp)
-            }
-
             Button(
                 onClick = { onImportBackup(backupJson) },
                 enabled = backupJson.isNotBlank(),
@@ -1560,16 +1495,6 @@ private fun Method15BackupRestoreMigration(
                 Icon(Icons.Default.Refresh, contentDescription = null, tint = DeepPurpleOnPrimary, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
                 Text("Restaurar JSON", color = DeepPurpleOnPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            }
-
-            OutlinedButton(
-                onClick = onImportBackupFile,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(Icons.Default.FileOpen, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Importar archivo", fontSize = 11.sp)
             }
         }
         Spacer(modifier = Modifier.height(10.dp))

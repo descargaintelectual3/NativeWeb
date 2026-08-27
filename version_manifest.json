@@ -1,9 +1,9 @@
 {
-  "versionName": "v5.0.3",
-  "version": "5.0.3",
-  "versionCode": 503,
-  "changelog": "WebNative Pro v5.0.3: nueva línea principal compatible con instalaciones 4.x, compilación reproducible, CI/CD automático y actualización OTA con notificaciones.",
-  "description": "Versión 5.0.3 con las 15 rutas de actualización, acceso GitHub de cero clics, actualización manual y comprobación automática en segundo plano.",
-  "releaseDate": "2026-08-26",
-  "downloadUrl": "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-release.apk"
+  "versionName": "v4.5.1",
+  "version": "4.5.1",
+  "versionCode": 451,
+  "changelog": "🚀 WebNative Pro v4.5.1: Inyector de Copia Ultra-Compatible (IA Chats, Código y Prompts), Botones de Desplazamiento Rápido Arriba/Abajo, Dock Modular de Herramientas y Sincronización CI/CD.",
+  "description": "Versión 4.5.1 con inyector optimizado de copiado de mensajes de IA/chat, botones de scroll rápido, dock modular y control de zoom.",
+  "releaseDate": "2026-08-25",
+  "downloadUrl": "https://github.com/descargaintelectual3/NativeWeb/releases/latest/download/app-debug.apk"
 }

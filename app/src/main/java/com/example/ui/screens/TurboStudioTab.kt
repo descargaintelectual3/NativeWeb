@@ -68,7 +68,27 @@ import com.example.ui.theme.TextGrayMuted
 import com.example.ui.theme.TextWhite
 import com.example.ui.viewmodel.WebAppUiState
 
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.CloudSync
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.RocketLaunch
+import androidx.compose.material.icons.filled.Terminal
+import androidx.compose.material.icons.filled.VpnKey
+import com.example.ui.components.GitHubControlPanelCard
+import com.example.ui.components.DeveloperDiagnosticsCard
+import com.example.ui.components.BuildMonitorView
+import com.example.ui.components.CommandTerminalCard
+import com.example.ui.components.DevelopmentActivityLogCard
+import com.example.ui.components.TestRunnerCard
+import com.example.ui.components.SystemLogsCard
+
+import com.example.util.AppearanceSettingsManager
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.SystemUpdate
 import com.example.ui.dialogs.DevicePermissionsDialog
@@ -469,7 +489,226 @@ fun TurboStudioTab(
             Spacer(modifier = Modifier.height(14.dp))
         }
 
-        // Section: Device & Site Permissions Hub
+        // Section: Developer Diagnostics (ADB & Connect)
+        item {
+            DeveloperDiagnosticsCard()
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        // Section: Shell Command Terminal & ADB Hardware Acceleration Engine
+        item {
+            CommandTerminalCard()
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        // Section: GitHub CI/CD Control Center
+        item {
+            GitHubControlPanelCard()
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        // Section: CI/CD Build Monitor & Artifacts Live Pipeline
+        item {
+            BuildMonitorView()
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        // Section: Automated Test Runner & Health Check (Roborazzi / JUnit)
+        item {
+            TestRunnerCard()
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        // Section: Development Activity Log & Revert Capabilities
+        item {
+            DevelopmentActivityLogCard()
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        // Section: System Logs Observability
+        item {
+            SystemLogsCard()
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        // Section: Appearance, Default Location & Floating Tools Configuration
+        item {
+            var defaultHomeUrl by remember { mutableStateOf(AppearanceSettingsManager.getDefaultHomeUrl(context)) }
+            var dockPosition by remember { mutableStateOf(AppearanceSettingsManager.getDockPosition(context)) }
+            var autoInjectCopy by remember { mutableStateOf(AppearanceSettingsManager.isAutoInjectCopyEnabled(context)) }
+
+            Text(
+                text = "Configuración de Apariencia & Ubicación",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = LavenderPrimary,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = ElegantCard),
+                shape = RoundedCornerShape(24.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, ElegantCardBorder)
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .background(LavenderPrimary.copy(alpha = 0.2f), RoundedCornerShape(14.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Palette,
+                                contentDescription = null,
+                                tint = LavenderPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Apariencia & Dock de Herramientas",
+                                fontWeight = FontWeight.Bold,
+                                color = TextWhite,
+                                fontSize = 15.sp
+                            )
+                            Text(
+                                text = "Ubicación de inicio, posición del dock y botones de copia rápida",
+                                fontSize = 11.sp,
+                                color = TextGrayMuted
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Default Location / URL
+                    Text(
+                        text = "Ubicación / URL de Inicio por Defecto",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = LavenderOnContainer
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = defaultHomeUrl,
+                        onValueChange = {
+                            defaultHomeUrl = it
+                            AppearanceSettingsManager.setDefaultHomeUrl(context, it)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        placeholder = { Text("https://google.com", color = TextGrayMuted, fontSize = 13.sp) },
+                        leadingIcon = {
+                            Icon(Icons.Default.Place, contentDescription = null, tint = LavenderPrimary, modifier = Modifier.size(18.dp))
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = LavenderPrimary,
+                            unfocusedBorderColor = ElegantCardBorder,
+                            focusedTextColor = TextWhite,
+                            unfocusedTextColor = TextWhite
+                        ),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Dock Position Selection
+                    Text(
+                        text = "Posición por Defecto del Botón Flotante Tools",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = LavenderOnContainer
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf(
+                            Triple(AppearanceSettingsManager.DOCK_POS_BOTTOM_CENTER, "Inferior Centro", "Abajo"),
+                            Triple(AppearanceSettingsManager.DOCK_POS_BOTTOM_RIGHT, "Inferior Derecha", "Esquina"),
+                            Triple(AppearanceSettingsManager.DOCK_POS_TOP_RIGHT, "Superior Derecha", "Arriba")
+                        ).forEach { (posKey, label, sub) ->
+                            val isSelected = dockPosition == posKey
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (isSelected) LavenderPrimary.copy(alpha = 0.25f) else DeepPurpleContainer)
+                                    .border(
+                                        1.dp,
+                                        if (isSelected) LavenderPrimary else ElegantCardBorder,
+                                        RoundedCornerShape(12.dp)
+                                    )
+                                    .clickable {
+                                        dockPosition = posKey
+                                        AppearanceSettingsManager.setDockPosition(context, posKey)
+                                    }
+                                    .padding(vertical = 8.dp, horizontal = 4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = label,
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isSelected) LavenderPrimary else TextGrayLight
+                                    )
+                                    Text(
+                                        text = sub,
+                                        fontSize = 9.sp,
+                                        color = if (isSelected) MintSpeed else TextGrayMuted
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Auto Copy Buttons Injection Switch
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Auto-Inyectar Botones 'Copiar' en Chats Web & IDE",
+                                fontWeight = FontWeight.Bold,
+                                color = TextWhite,
+                                fontSize = 13.sp
+                            )
+                            Text(
+                                "Añade un botón de 1 toque a cada mensaje de IA, prompt y código",
+                                fontSize = 11.sp,
+                                color = TextGrayMuted
+                            )
+                        }
+                        Switch(
+                            checked = autoInjectCopy,
+                            onCheckedChange = {
+                                autoInjectCopy = it
+                                AppearanceSettingsManager.setAutoInjectCopyEnabled(context, it)
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = DeepPurpleOnPrimary,
+                                checkedTrackColor = LavenderPrimary
+                            )
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+        }
         item {
             Text(
                 text = "Permisos del Dispositivo & Sitios Web",

@@ -1,10 +1,10 @@
-name: WebNative Android CI/CD
+name: Automated CI/CD Android APK Build & GitHub Release
 
 on:
   push:
     branches: [ "main", "master" ]
     tags:
-      - "v*"
+      - 'v*'
   pull_request:
     branches: [ "main", "master" ]
   workflow_dispatch:
@@ -12,10 +12,6 @@ on:
 permissions:
   contents: write
   packages: write
-
-concurrency:
-  group: webnative-build-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   build-and-release:
@@ -31,151 +27,78 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: "17"
-          distribution: "temurin"
-          cache: gradle
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Set up Gradle 8.11.1
+      - name: Setup Gradle 8.11.1
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.11.1"
+          gradle-version: '8.11.1'
 
-      - name: Ensure Debug Keystore for pull requests
-        if: github.event_name == 'pull_request'
-        shell: bash
+      - name: Ensure Debug Keystore
         run: |
-          set -euo pipefail
-          keytool -genkeypair -v \
-            -keystore debug.keystore \
-            -storepass android \
-            -alias androiddebugkey \
-            -keypass android \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US"
-
-      - name: Restore stable release signing key
-        if: github.event_name != 'pull_request'
-        shell: bash
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-        run: |
-          set -euo pipefail
-          [[ -n "$ANDROID_KEYSTORE_BASE64" ]] || { echo "Missing ANDROID_KEYSTORE_BASE64 repository secret"; exit 1; }
-          [[ -n "$ANDROID_KEYSTORE_PASSWORD" ]] || { echo "Missing ANDROID_KEYSTORE_PASSWORD repository secret"; exit 1; }
-          [[ -n "$ANDROID_KEY_PASSWORD" ]] || { echo "Missing ANDROID_KEY_PASSWORD repository secret"; exit 1; }
-          [[ -n "$ANDROID_KEY_ALIAS" ]] || { echo "Missing ANDROID_KEY_ALIAS repository secret"; exit 1; }
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > release-signing.jks
-          chmod 600 release-signing.jks
-
-      - name: Read and validate release version
-        id: version
-        shell: bash
-        run: |
-          set -euo pipefail
-          version="$(sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' version_manifest.json | head -n 1)"
-          version_code="$(sed -n 's/^[[:space:]]*"versionCode"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' version_manifest.json | head -n 1)"
-
-          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid version: $version"; exit 1; }
-          [[ "$version_code" =~ ^[0-9]+$ ]] || { echo "Invalid versionCode: $version_code"; exit 1; }
-          (( version_code > 0 )) || { echo "versionCode must be positive"; exit 1; }
-
-          package_version="$(sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' package.json | head -n 1)"
-          package_code="$(sed -n 's/^[[:space:]]*"versionCode"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' package.json | head -n 1)"
-          [[ "$package_version" == "$version" ]] || { echo "package.json version does not match version_manifest.json"; exit 1; }
-          [[ "$package_code" == "$version_code" ]] || { echo "package.json versionCode does not match version_manifest.json"; exit 1; }
-
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "version_code=$version_code" >> "$GITHUB_OUTPUT"
-          echo "tag=v$version" >> "$GITHUB_OUTPUT"
-
-      - name: Build debug APK for pull requests
-        if: github.event_name == 'pull_request'
-        shell: bash
-        env:
-          VERSION_NAME: ${{ steps.version.outputs.version }}
-          VERSION_CODE: ${{ steps.version.outputs.version_code }}
-        run: |
-          set -euo pipefail
-          chmod +x ./gradlew
-          ./gradlew assembleDebug --no-daemon --max-workers=2 --stacktrace \
-            -Dorg.gradle.jvmargs="-Xmx2g -Dfile.encoding=UTF-8" \
-            -PversionName="$VERSION_NAME" -PversionCode="$VERSION_CODE"
-
-      - name: Build signed release APK
-        if: github.event_name != 'pull_request'
-        shell: bash
-        env:
-          VERSION_NAME: ${{ steps.version.outputs.version }}
-          VERSION_CODE: ${{ steps.version.outputs.version_code }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-        run: |
-          set -euo pipefail
-          chmod +x ./gradlew
-          KEYSTORE_PATH="$GITHUB_WORKSPACE/release-signing.jks" \
-          STORE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD" \
-          KEY_PASSWORD="$ANDROID_KEY_PASSWORD" \
-          KEY_ALIAS="$ANDROID_KEY_ALIAS" \
-          ./gradlew assembleRelease --no-daemon --max-workers=2 --stacktrace \
-            -Dorg.gradle.jvmargs="-Xmx2g -Dfile.encoding=UTF-8" \
-            -PversionName="$VERSION_NAME" -PversionCode="$VERSION_CODE"
-
-      - name: Verify APK output
-        shell: bash
-        env:
-          TAG_NAME: ${{ steps.version.outputs.tag }}
-        run: |
-          set -euo pipefail
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            apk="app/build/outputs/apk/debug/app-debug.apk"
-            label="debug"
-          else
-            apk="app/build/outputs/apk/release/app-release.apk"
-            label="release"
+          if [ ! -f "debug.keystore" ]; then
+            echo "Generating fallback debug keystore..."
+            keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" || true
           fi
-          test -s "$apk"
-          mkdir -p release-assets
-          cp "$apk" release-assets/app-$label.apk
-          cp "$apk" "release-assets/WebNative-${TAG_NAME}.apk"
-          sha256sum release-assets/*.apk | tee release-assets/SHA256SUMS.txt
-          ls -lh release-assets
 
-      - name: Upload APK artifacts
+      - name: Build Android APKs with Gradle 8.11.1
+        run: |
+          gradle assembleDebug --no-daemon --stacktrace
+
+      - name: Extract Version Info
+        id: get_version
+        run: |
+          VERSION="4.5.1"
+          if [ -f "version_manifest.json" ]; then
+            PARSED_VER=$(grep -o '"version": "[^"]*' version_manifest.json | cut -d'"' -f4)
+            if [ -n "$PARSED_VER" ]; then
+              VERSION="$PARSED_VER"
+            fi
+          fi
+          TAG_NAME="v$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Building release for version $TAG_NAME"
+
+      - name: Rename & Organize APK Artifacts
+        run: |
+          mkdir -p release-assets
+          find app/build/outputs/apk/ -name "*.apk" -type f -exec cp {} release-assets/ \;
+          cd release-assets
+          if [ -f "app-debug.apk" ]; then
+            cp app-debug.apk "WebNative-${{ steps.get_version.outputs.TAG_NAME }}.apk"
+          fi
+          ls -la
+
+      - name: Upload APKs to GitHub Actions Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: webnative-apks-${{ steps.version.outputs.tag }}
-          path: release-assets/*
-          if-no-files-found: error
+          name: webnative-pro-apks-${{ steps.get_version.outputs.TAG_NAME }}
+          path: release-assets/*.apk
           retention-days: 30
 
-      - name: Publish or update GitHub Release
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      - name: Publish or Update GitHub Release with APKs
         uses: softprops/action-gh-release@v2
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: WebNative Pro ${{ steps.version.outputs.tag }}
+          tag_name: ${{ steps.get_version.outputs.TAG_NAME }}
+          name: WebNative Pro ${{ steps.get_version.outputs.TAG_NAME }}
           body: |
-            ## WebNative Pro ${{ steps.version.outputs.tag }}
+            ## 🚀 WebNative Pro ${{ steps.get_version.outputs.TAG_NAME }}
+            Compilado y publicado automáticamente por GitHub Actions CI/CD.
 
-            Release generada automáticamente por GitHub Actions y firmada con la clave estable de WebNative 5.x.
+            ### ✨ Novedades:
+            - **Centro de Actualizaciones 15-en-1:** Soporte multicanal in-app, SAF Local, URLs Directas, Sheets OTA y LAN Sync.
+            - **Verificación HTTP Real:** Sonda de conectividad con inspección de cabeceras, tipo MIME y tamaño de archivo.
+            - **Motor Turbo GPU:** Renderizado WebView optimizado y aceleración por hardware.
+            - **Google Sheets Cloud OTA:** Sincronización en caliente del catálogo sin reinstalar el APK.
 
-            ### Cambios incluidos
-            - Nueva línea 5.x compatible con la migración desde WebNative 4.x mediante Backup & Restore.
-            - Las 15 rutas de actualización, el acceso GitHub de cero clics y los tokens configurados permanecen disponibles.
-            - Backup completo exportable a archivo, con aplicaciones, preferencias OTA, GitHub, Sheets, CSS/JS y accesos guardados.
-            - Importación idempotente que evita duplicados al restaurar el backup.
-
-            ### Archivos
-            - `app-release.apk`: APK firmado para instalar y actualizar futuras versiones.
-            - `WebNative-${{ steps.version.outputs.tag }}.apk`: APK firmado con nombre versionado.
-            - `SHA256SUMS.txt`: hashes SHA-256 de los APK.
-          files: release-assets/*
+            ### 📦 Descarga directa:
+            Descarga el archivo `app-debug.apk` o `WebNative-${{ steps.get_version.outputs.TAG_NAME }}.apk` adjunto abajo e instálalo directamente en tu dispositivo Android.
+          files: release-assets/*.apk
           draft: false
           prerelease: false
           make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

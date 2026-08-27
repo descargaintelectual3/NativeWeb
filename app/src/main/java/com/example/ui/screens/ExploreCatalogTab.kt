@@ -102,6 +102,7 @@ val CURATED_CATALOG = listOf(
     CuratedAppItem("Reddit Pro", "https://www.reddit.com", "👾", "Redes Sociales", "Comunidades, debates y tendencias globales", 0xFFFF4500, true, true),
 
     // Desarrollo & Gaming
+    CuratedAppItem("Mi AI Studio", "https://aistudio.google.com/apps/d8363bfd-71cf-48ae-aa8d-f7bc9c1f0647?showAssistant=true&showPreview=true&project=project-52bf46ab-d5b0-4883-900", "💻", "Desarrollo", "Habla con el asistente y continúa desarrollando la app", 0xFF4285F4, true, false),
     CuratedAppItem("GitHub Hub", "https://github.com", "🐙", "Desarrollo", "Repositorios de código, pull requests y proyectos", 0xFF49454F, true, false),
     CuratedAppItem("Stack Overflow", "https://stackoverflow.com", "💻", "Desarrollo", "Preguntas y respuestas para programadores", 0xFFF48024, true, true),
     CuratedAppItem("GeForce NOW Web", "https://play.geforcenow.com", "🕹️", "Juegos & Cloud", "Cloud Gaming de alta gama en tu teléfono", 0xFF76B900, true, false)
