@@ -17,7 +17,6 @@ jobs:
   build-and-release:
     name: Build APKs and Publish GitHub Release
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -42,23 +41,42 @@ jobs:
             keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" || true
           fi
 
-      - name: Build Android APKs with Gradle 8.11.1
+      - name: Restore Keystore from Secrets
+        id: keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          gradle assembleDebug --no-daemon --stacktrace
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Decoding Keystore..."
+            echo "$KEYSTORE_BASE64" | base64 --decode > my-upload-key.jks
+            echo "has_keystore=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_keystore=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Android APKs with Gradle 8.11.1
+        env:
+          KEYSTORE_PATH: my-upload-key.jks
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ "${{ steps.keystore.outputs.has_keystore }}" = "true" ]; then
+            echo "Building Release APK..."
+            gradle assembleRelease --no-daemon --stacktrace
+          else
+            echo "Building Debug APK as fallback..."
+            gradle assembleDebug --no-daemon --stacktrace
+          fi
 
       - name: Extract Version Info
         id: get_version
         run: |
-          VERSION="4.5.1"
-          if [ -f "version_manifest.json" ]; then
-            PARSED_VER=$(grep -o '"version": "[^"]*' version_manifest.json | cut -d'"' -f4)
-            if [ -n "$PARSED_VER" ]; then
-              VERSION="$PARSED_VER"
-            fi
-          fi
+          RUN_NUMBER=${{ github.run_number }}
+          VERSION="5.0.$RUN_NUMBER"
           TAG_NAME="v$VERSION"
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_OUTPUT"
           echo "Building release for version $TAG_NAME"
 
       - name: Rename & Organize APK Artifacts
@@ -66,8 +84,12 @@ jobs:
           mkdir -p release-assets
           find app/build/outputs/apk/ -name "*.apk" -type f -exec cp {} release-assets/ \;
           cd release-assets
+          
+          if [ -f "app-release.apk" ]; then
+            mv app-release.apk "WebNative-${{ steps.get_version.outputs.TAG_NAME }}-Release.apk"
+          fi
           if [ -f "app-debug.apk" ]; then
-            cp app-debug.apk "WebNative-${{ steps.get_version.outputs.TAG_NAME }}.apk"
+            mv app-debug.apk "WebNative-${{ steps.get_version.outputs.TAG_NAME }}-Debug.apk"
           fi
           ls -la
 
@@ -87,15 +109,13 @@ jobs:
           body: |
             ## 🚀 WebNative Pro ${{ steps.get_version.outputs.TAG_NAME }}
             Compilado y publicado automáticamente por GitHub Actions CI/CD.
-
+            
             ### ✨ Novedades:
-            - **Centro de Actualizaciones 15-en-1:** Soporte multicanal in-app, SAF Local, URLs Directas, Sheets OTA y LAN Sync.
-            - **Verificación HTTP Real:** Sonda de conectividad con inspección de cabeceras, tipo MIME y tamaño de archivo.
-            - **Motor Turbo GPU:** Renderizado WebView optimizado y aceleración por hardware.
-            - **Google Sheets Cloud OTA:** Sincronización en caliente del catálogo sin reinstalar el APK.
-
-            ### 📦 Descarga directa:
-            Descarga el archivo `app-debug.apk` o `WebNative-${{ steps.get_version.outputs.TAG_NAME }}.apk` adjunto abajo e instálalo directamente en tu dispositivo Android.
+            - **Auto-Incremento de Versiones:** Mapeo automático de \`versionCode\` al Build Run #${{ github.run_number }} de GitHub Actions.
+            - **Firma Automática:** Mapeo seguro con Keystore para builds en Release desde Secrets (o fallback a Debug si no hay claves).
+            
+            ### 📦 Descargas:
+            Instala el binario \`.apk\` adjunto directamente en tu dispositivo Android.
           files: release-assets/*.apk
           draft: false
           prerelease: false

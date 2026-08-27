@@ -15,8 +15,9 @@ android {
     applicationId = "com.aistudio.webnative.turbovx"
     minSdk = 24
     targetSdk = 35
-    versionCode = 451
-    versionName = "4.5.1"
+    val runNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()
+    versionCode = runNumber ?: 451
+    versionName = if (runNumber != null) "5.0.$runNumber" else "4.5.1"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
